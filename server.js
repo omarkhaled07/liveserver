@@ -5,26 +5,20 @@ require('dotenv').config();
 
 const app = express();
 
-// ✅ استخدم الـ Middleware بالترتيب الصحيح
+// ✅ تأكد من تفعيل تحليل JSON قبل أي طلب
 app.use(cors());
-app.use(express.json());  // لمعالجة JSON في الطلبات
-app.use(express.urlencoded({ extended: true }));  // لمعالجة x-www-form-urlencoded
+app.use(express.json());  // معالجة JSON
+app.use(express.urlencoded({ extended: true }));  // معالجة x-www-form-urlencoded
 
-// 🔹 التحقق من وجود متغيرات البيئة
-if (!process.env.LIVEKIT_URL || !process.env.LIVEKIT_API_KEY || !process.env.LIVEKIT_API_SECRET) {
-    console.error("❌ تأكد من ضبط LIVEKIT_URL, LIVEKIT_API_KEY, و LIVEKIT_API_SECRET في .env");
-    process.exit(1);
-}
-
-// ✅ API لإنشاء التوكين
 app.post('/get-token', (req, res) => {
-    console.log("📥 Received request body:", req.body);  // ✅ طباعة الطلب لفحص المشكلة
+    console.log("📥 Received request body:", req.body);  // ✅ طباعة الطلب للتحقق
 
-    const { identity, room } = req.body;
-
-    if (!identity || !room) {
+    // ✅ تأكد من أن body يحتوي على القيم المطلوبة
+    if (!req.body || !req.body.identity || !req.body.room) {
         return res.status(400).json({ error: "❌ Missing identity or room" });
     }
+
+    const { identity, room } = req.body;
 
     try {
         const token = new AccessToken(process.env.LIVEKIT_API_KEY, process.env.LIVEKIT_API_SECRET, {
@@ -39,7 +33,7 @@ app.post('/get-token', (req, res) => {
     }
 });
 
-// تشغيل السيرفر
+// ✅ تشغيل السيرفر
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Server is running on port ${PORT}`);
